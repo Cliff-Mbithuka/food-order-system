@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, response } from "express";
-import { VandorLoginInputs } from "../dto";
+import { EditVandorInputs, VandorLoginInputs } from "../dto";
 import { FindVandor } from "./AdminController";
 import { GenerateSignature, ValidatePassword} from "../utility";
 
@@ -49,10 +49,23 @@ export const GetVandorProfile = async (req: Request, res:Response,next:NextFunct
 
 // Update Vandor profile
 export const updateVandorProfile = async (req: Request, res:Response,next:NextFunction) => {
+
+  const { foodTypes, name, address , phone} = <EditVandorInputs>req.body;
+
   const user = req.user;
 
   if(user){
     const existingVandor = await FindVandor(user._id);
+
+    if(existingVandor !== null){
+      existingVandor.name = name;
+      existingVandor.address = address;
+      existingVandor.phone = phone;
+      existingVandor.foodType = foodTypes
+
+      const savedResult = await existingVandor.save()
+      return res.json(savedResult);
+    }
 
     return res.json(existingVandor)
   }
@@ -62,5 +75,19 @@ export const updateVandorProfile = async (req: Request, res:Response,next:NextFu
 
 
 export const updateVandorService = async (req: Request, res:Response,next:NextFunction) => {
+  const user = req.user;
 
+  if(user){
+    const existingVandor = await FindVandor(user._id);
+
+    if(existingVandor !== null){
+      existingVandor.serviceAvailable = !existingVandor.serviceAvailable;
+      const savedResult = await existingVandor.serviceAvailable;
+      return res.json(savedResult);
+    }
+
+    return res.json(existingVandor)
+  }
+
+  return res.json({"message": "Vandor information Not found"});
 }
