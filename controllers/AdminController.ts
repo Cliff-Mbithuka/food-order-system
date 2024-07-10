@@ -3,6 +3,20 @@ import { CreateVandorInput } from "../dto";
 import { Vandor } from "../models";
 import { GeneratePassword, GenerateSalt } from "../utility";
 
+
+//find vandor by ID or EMAIL
+export const FindVandor = async(id:string | undefined, email?: string) => {
+
+  if(email){
+    return await Vandor.findOne({email: email});
+    
+  }else{
+    return await Vandor.findById(id);
+   
+  };
+
+}
+
 // Create a vandor
 export const CreateVandor = async (
   req: Request,
@@ -20,7 +34,7 @@ export const CreateVandor = async (
     phone,
   } = <CreateVandorInput>req.body;
 
-  const existingVandor = await Vandor.findOne({ email : email});
+  const existingVandor = await FindVandor('', email);
 
   if(existingVandor !== null){
     return res.json({
@@ -30,9 +44,9 @@ export const CreateVandor = async (
 
   //Generate a salt
   const salt = await GenerateSalt();
-  const userPassword = await GeneratePassword(password, salt);
 
   //encrypt the password usiing the salt
+  const userPassword = await GeneratePassword(password, salt);
 
 
   const createdVandor = await Vandor.create({
@@ -76,7 +90,7 @@ export const GetVandorById = async (
 ) => {
   const vandorId = req.params.id;
 
-  const vandor = await Vandor.findById(vandorId);
+  const vandor = await FindVandor(vandorId);
 
   if(vandor !== null){
     return res.json(vandor);
