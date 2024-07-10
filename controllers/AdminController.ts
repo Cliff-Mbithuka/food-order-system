@@ -53,13 +53,34 @@ export const CreateVandor = async (
   return res.json({ createdVandor });
 };
 
+// Get all vandors from the DB
 export const GetVandors = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => { 
+  const vandors = await Vandor.find()
+
+  if(vandors !== null){
+    return res.json(vandors)
+  }
+
+  return res.json({"message": "Vandors data not available"});
+};
+
+// Get vandor with the ID
 export const GetVandorById = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const vandorId = req.params.id;
+
+  const vandor = await Vandor.findById(vandorId);
+
+  if(vandor !== null){
+    return res.json(vandor);
+  }
+
+  return res.json({"message": "Vandor data not available"});
+};
