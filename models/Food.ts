@@ -6,7 +6,7 @@ export interface FoodDoc extends Document {
     description: string;
     category: string;
     foodType: string;
-    readyTime: string;
+    readyTime: number;
     price: number;
     rating: number;
     images: [string]
@@ -18,7 +18,7 @@ const FoodSchema = new Schema ({
     description : { type: String, required: true},
     category: { type: String},
     foodType: { type: String, required: true},
-    readyTime: { type: Number}, 
+    readyTime: { type: Number, required: true }, 
     price: { type: Number, required: true},
     rating: { type: Number},
     images: { type: [String]}
