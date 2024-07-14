@@ -31,11 +31,16 @@ export const CustomerSignUp = async (
 
     const { otp, expiry} = GenerateOtp();
     
+    const existingCustomer = await Customer.findOne({email: email})
+
+    if(existingCustomer !== null){
+      return res.status(409).json({message: 'An user exist with the provided email'});
+    }
     
 
     const result = await Customer.create({
         email: email,
-        password: password,
+        password: userPassword,
         salt: salt,
         phone: phone,
         otp: otp,
@@ -61,9 +66,10 @@ export const CustomerSignUp = async (
         })
 
         // Send the result to client
-        return res.status(201).json({ signature: signature})
-          
+        return res.status(201).json({ signature: signature, verified: result.verified, email: result.email})  
     }
+
+    return res.status(400).json({message: 'Error with Signup'})
 };
 
 

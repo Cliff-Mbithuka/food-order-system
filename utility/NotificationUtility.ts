@@ -16,10 +16,10 @@ export const onRequestOTP = async (otp: number, toPhoneNumber: string) => {
     const authToken = "d8eb1baab098f184b9fd753642367cc8";
     const client = require('twilio')(accountSid, authToken);
 
-    const response = await client .message.create({
+    const response = await client .messages.create({
         body: 'Your OTP is ${otp}',
         from: '+254114117903',
-        to: toPhoneNumber
+        to: `+254${toPhoneNumber}`,
     })
 
     return response;
