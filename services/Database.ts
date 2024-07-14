@@ -9,8 +9,8 @@ export default async () => {
             // useCreateIndex: true
         })
             console.log('MongoDB Connected...')
-    } catch (error) {
-        console.log(error)
+    } catch (ex) {
+        console.log(ex)
     }
 }
 

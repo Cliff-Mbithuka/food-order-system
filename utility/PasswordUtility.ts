@@ -19,7 +19,7 @@ export const ValidatePassword = async (enteredPassword: string,savedPassword: st
 }
 
 export const GenerateSignature = (payload: VandorPayLoad) => {
- return jwt.sign(payload,APP_SECRET, {expiresIn: "1d" })
+ return jwt.sign(payload,APP_SECRET, {expiresIn: "4d" })
 }
 
 

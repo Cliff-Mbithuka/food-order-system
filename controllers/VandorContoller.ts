@@ -116,7 +116,7 @@ next: NextFunction
 }
 
 
-//update vendor service
+//update vandor service
 export const updateVandorService = async (
   req: Request,
   res: Response,
@@ -139,7 +139,7 @@ export const updateVandorService = async (
   return res.json({ message: "Vandor information Not found" });
 };
 
-// // add food
+ // add food
 export const AddFood = async (
   req: Request,
   res: Response,

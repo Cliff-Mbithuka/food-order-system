@@ -12,15 +12,19 @@ const imageStorage = multer.diskStorage({
     destination: function (req, file, cb) {
 
       const imagesDir = path.join(__dirname, '..', 'images');
+
       if (!fs.existsSync(imagesDir)) {
         fs.mkdirSync(imagesDir, { recursive: true });
       }
       cb(null, imagesDir);
+      
     },
+
     filename: function (req, file, cb) {
       const timestamp = new Date().toISOString().replace(/:/g, '-');
       cb(null, `${timestamp}_${file.originalname}`);
     }
+
   });
 
 const images = multer({storage: imageStorage}).array('images', 10)
