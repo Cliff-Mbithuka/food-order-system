@@ -3,8 +3,11 @@ import { Request, Response, NextFunction } from "express";
 import { plainToClass } from "class-transformer";
 import { CreateCustomerInputs } from "../dto/Customer.dto";
 import { validate, ValidationError } from "class-validator";
-import { GenerateOtp, GeneratePassword, GenerateSalt } from "../utility";
+import { GenerateOtp, GeneratePassword,GenerateSignature, GenerateSalt, onRequestOTP } from "../utility";
 import { Customer } from "../models/Customer";
+import { verify } from "jsonwebtoken";
+
+
 
 // Sign up /  create customer
 export const CustomerSignUp = async (
@@ -48,11 +51,17 @@ export const CustomerSignUp = async (
     if(result){
 
         // send the OTP to customer
+        await onRequestOTP(otp, phone)
 
         // Generate the signature
+        const signature = GenerateSignature({
+            _id: result._id,
+            email: result.email,
+            verified: result.verified
+        })
 
         // Send the result to client
-
+        return res.status(201).json({ signature: signature})
           
     }
 };
