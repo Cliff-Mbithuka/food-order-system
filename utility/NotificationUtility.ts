@@ -9,11 +9,12 @@ export const GenerateOtp = () => {
     expiry.setTime( new Date().getTime() + (30 * 60 * 1000))
 
     return { otp, expiry}
+    
 }
 
 export const onRequestOTP = async (otp: number, toPhoneNumber: string) => {
-    const accountSid = "AC78f30a920fa5d923cd657249996ea3d0";
-    const authToken = "d8eb1baab098f184b9fd753642367cc8";
+    const accountSid = "";
+    const authToken = "";
     const client = require('twilio')(accountSid, authToken);
 
     const response = await client .messages.create({

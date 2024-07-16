@@ -1,5 +1,6 @@
 import express, {Request, Response, NextFunction } from 'express';
-import { CustomerLogin, CustomerSignUp, CustomerVerify, EditCustomerProfile, GetCustomerProfile, RequestOtp } from '../controllers/CustomerController';
+import { CustomerLogin, CustomerSignUp, EditCustomerProfile, GetCustomerProfile } from '../controllers/CustomerController';
+import { Authenticate } from '../middlewares';
 
 const router = express.Router();
  
@@ -10,12 +11,13 @@ router.post('/signup', CustomerSignUp);
 router.post('/login', CustomerLogin);
 
 //Authentication
+router.use(Authenticate)
 
 /*--------------- Verify Customer  Account------------ */
-router.patch('/verify', CustomerVerify);
+// router.patch('/verify', );
 
 /*--------------- OTP / Requesting OTP ------------ */
-router.get('/otp', RequestOtp);
+// router.get('/otp', );
 
 
 /*--------------- Profile ------------ */
