@@ -206,3 +206,24 @@ export const GetFoods = async (
 
   return res.json({ message: "foods information Not found" });
 };
+
+
+export const GetCurrentOrders = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {}
+
+export const GetOrderDetails = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {}
+
+
+export const ProcessOrder = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {}
+
