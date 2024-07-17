@@ -6,6 +6,7 @@ import { GenerateOtp, GeneratePassword, GenerateSignature, GenerateSalt, onReque
 import { Customer } from "../models/Customer";
 import { verify } from "jsonwebtoken";
 import { Order } from "../models/Order";
+import {Food} from "../models/Food"
 
 // Sign up /  create customer
 export const CustomerSignUp = async (
@@ -232,55 +233,49 @@ export const CreateOrder = async (
   res: Response,
   next: NextFunction
 ) => {
+  // Grab current login customer
   const customer = req.user;
-
-  const { txnId, amount, items } = <OrderInputs>req.body;
-
  
  if(customer){
-
+// create an order ID
      const orderId = `${Math.floor(Math.random() * 89999)+ 1000}`;
 
      const profile = await Customer.findById(customer._id);
 
+     // Grab order items from request [{ id: XX ,  unit: XX}]
      const cart = <[OrderInputs]>req.body;
 
      let cartItems = Array(); 
 
      let netAmount = 0.0;
 
-     let vandorId;
-
+    //Calculate order amount
      const foods = await Food.find().where('_id').in(cart.map(item => item._id)).exec();
 
      foods.map(food => {
 
          cart.map(({ _id, unit}) => {
           if(food._id == _id){
-            vandorId = food.vandorId;
+            // vandorId = food.vandorId;
             netAmount += (food.price * unit);
-            cartItems.push({ food._id, unit})
+            cartItems.push({ food, unit})
         }
     })
 })
 
+//create order with item descriptions
 if(cartItems){
 
+  // Create order
     const currentOrder = await Order.create({
         orderID: orderId,
-        vandorId: vandorId,
         items: cartItems,
         totalAmount: netAmount,
-        paidAmount: amount,
+        orderDate: new Date(),
         paidThrough: 'COD',
         paymentResponse: '',
-        orderDate: new Date(),
         orderStatus: 'Waiting',
-        remarks: '',
-        deliveryId: '',
-        readyTime: 45
     })
-
 
     if(currentOrder){
      
@@ -295,7 +290,6 @@ if(cartItems){
 }
 
 }
-
 return res.status(400).json({ msg: 'Error while Creating Order'});
 }
 
@@ -309,7 +303,7 @@ export const GetOrders = async (
   const customer = req.user;
 
   if(customer){
-    const profile = (await Customer.findById(customer._id)).populate("orders");
+    const profile = await Customer.findById(customer._id).populate("orders");
 
     if(profile){
       return res.status(200).json(profile.orders);
