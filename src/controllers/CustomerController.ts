@@ -1,12 +1,24 @@
 import { Request, Response, NextFunction } from "express";
 import { plainToClass } from "class-transformer";
-import { CreateCustomerInputs, UserLoginInputs, EditCustomerProfileInputs, OrderInputs } from "../dto/Customer.dto";
+import {
+  CreateCustomerInputs,
+  UserLoginInputs,
+  EditCustomerProfileInputs,
+  OrderInputs,
+} from "../dto/Customer.dto";
 import { validate, ValidationError } from "class-validator";
-import { GenerateOtp, GeneratePassword, GenerateSignature, GenerateSalt, onRequestOTP, ValidatePassword } from "../utility";
+import {
+  GenerateOtp,
+  GeneratePassword,
+  GenerateSignature,
+  GenerateSalt,
+  onRequestOTP,
+  ValidatePassword,
+} from "../utility";
 import { Customer } from "../models/Customer";
 import { verify } from "jsonwebtoken";
 import { Order } from "../models/Order";
-import {Food} from "../models/Food"
+import { Food } from "../models/Food";
 
 // Sign up /  create customer
 export const CustomerSignUp = async (
@@ -14,10 +26,11 @@ export const CustomerSignUp = async (
   res: Response,
   next: NextFunction
 ) => {
-
   const customerInputs = plainToClass(CreateCustomerInputs, req.body);
 
-  const inputErrors = await validate(customerInputs, { validationError: { target: true } });
+  const inputErrors = await validate(customerInputs, {
+    validationError: { target: true },
+  });
 
   if (inputErrors.length > 0) {
     return res.status(400).json(inputErrors);
@@ -33,7 +46,9 @@ export const CustomerSignUp = async (
   const existingCustomer = await Customer.findOne({ email: email });
 
   if (existingCustomer !== null) {
-    return res.status(409).json({ message: 'A user exists with the provided email' });
+    return res
+      .status(409)
+      .json({ message: "A user exists with the provided email" });
   }
 
   const result = await Customer.create({
@@ -45,11 +60,11 @@ export const CustomerSignUp = async (
     otp_expiry: expiry,
     firstName: "",
     lastName: "",
-    address: '',
+    address: "",
     verified: false,
     lat: 0,
     lng: 0,
-    orders: []
+    orders: [],
   });
 
   if (result) {
@@ -60,14 +75,20 @@ export const CustomerSignUp = async (
     const signature = GenerateSignature({
       _id: String(result._id),
       email: result.email,
-      verified: result.verified
+      verified: result.verified,
     });
 
     // Send the result to client
-    return res.status(201).json({ signature: signature, verified: result.verified, email: result.email });
+    return res
+      .status(201)
+      .json({
+        signature: signature,
+        verified: result.verified,
+        email: result.email,
+      });
   }
 
-  return res.status(400).json({ message: 'Error with Signup' });
+  return res.status(400).json({ message: "Error with Signup" });
 };
 
 // login customer
@@ -76,10 +97,11 @@ export const CustomerLogin = async (
   res: Response,
   next: NextFunction
 ) => {
-
   const loginInputs = plainToClass(UserLoginInputs, req.body);
 
-  const loginErrors = await validate(loginInputs, { validationError: { target: false } });
+  const loginErrors = await validate(loginInputs, {
+    validationError: { target: false },
+  });
 
   if (loginErrors.length > 0) {
     return res.status(400).json(loginErrors);
@@ -90,23 +112,32 @@ export const CustomerLogin = async (
   const customer = await Customer.findOne({ email: email });
 
   if (customer) {
-
-    const validation = await ValidatePassword(password, customer.password, customer.salt);
+    const validation = await ValidatePassword(
+      password,
+      customer.password,
+      customer.salt
+    );
 
     if (validation) {
-      // generate the signature 
+      // generate the signature
       const signature = GenerateSignature({
         _id: String(customer._id),
         email: customer.email,
-        verified: customer.verified
+        verified: customer.verified,
       });
 
-      // send the result to client 
-      return res.status(201).json({ signature: signature, verified: customer.verified, email: customer.email });
+      // send the result to client
+      return res
+        .status(201)
+        .json({
+          signature: signature,
+          verified: customer.verified,
+          email: customer.email,
+        });
     }
   }
 
-  return res.status(404).json({ message: 'LoginError' });
+  return res.status(404).json({ message: "LoginError" });
 };
 
 // verify customer account
@@ -121,7 +152,6 @@ export const CustomerVerify = async (
   if (customer) {
     const profile = await Customer.findById(customer._id);
     if (profile) {
-      
       const otpExpiry = new Date(profile.otp_expiry).getTime();
       if (profile.otp === otp && otpExpiry >= Date.now()) {
         profile.verified = true;
@@ -152,14 +182,12 @@ export const RequestOtp = async (
   res: Response,
   next: NextFunction
 ) => {
-
   const customer = req.user;
 
   if (customer) {
     const profile = await Customer.findById(customer._id);
 
     if (profile) {
-
       const { otp, expiry } = GenerateOtp();
 
       profile.otp = otp;
@@ -168,11 +196,13 @@ export const RequestOtp = async (
       await profile.save();
       await onRequestOTP(otp, profile.phone);
 
-      res.status(200).json({ message: 'OTP sent to your registered phone number' });
+      res
+        .status(200)
+        .json({ message: "OTP sent to your registered phone number" });
     }
   }
 
-  return res.status(400).json({ message: 'Error with Request OTP' });
+  return res.status(400).json({ message: "Error with Request OTP" });
 };
 
 // Get customer profile
@@ -191,7 +221,7 @@ export const GetCustomerProfile = async (
     }
   }
 
-  return res.status(400).json({ message: 'Error with fetching profile' });
+  return res.status(400).json({ message: "Error with fetching profile" });
 };
 
 // Update customer profile
@@ -204,7 +234,9 @@ export const EditCustomerProfile = async (
 
   const profileInputs = plainToClass(EditCustomerProfileInputs, req.body);
 
-  const profileErrors = await validate(profileInputs, { validationError: { target: false } });
+  const profileErrors = await validate(profileInputs, {
+    validationError: { target: false },
+  });
 
   if (profileErrors.length > 0) {
     return res.status(400).json(profileErrors);
@@ -227,7 +259,38 @@ export const EditCustomerProfile = async (
   }
 };
 
+/**=========Cart section========= */
+//Add to cart
+export const AddToCart = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const customer = req.user;
 
+  if(customer){
+
+  }else{
+    return res.status(400).json({message: 'Unable to create Cart'});
+  }
+};
+
+//Get items from the cart
+export const GetCart = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
+
+//Delete items in the cart
+export const DeleteCart = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
+
+/**=========Order section========= */
+//Create orders
 export const CreateOrder = async (
   req: Request,
   res: Response,
@@ -235,95 +298,86 @@ export const CreateOrder = async (
 ) => {
   // Grab current login customer
   const customer = req.user;
- 
- if(customer){
-// create an order ID
-     const orderId = `${Math.floor(Math.random() * 89999)+ 1000}`;
 
-     const profile = await Customer.findById(customer._id);
+  if (customer) {
+    // create an order ID
+    const orderId = `${Math.floor(Math.random() * 89999) + 1000}`;
 
-     // Grab order items from request [{ id: XX ,  unit: XX}]
-     const cart = <[OrderInputs]>req.body;
+    const profile = await Customer.findById(customer._id);
 
-     let cartItems = Array(); 
+    // Grab order items from request [{ id: XX ,  unit: XX}]
+    const cart = <[OrderInputs]>req.body;
 
-     let netAmount = 0.0;
+    let cartItems = Array();
+
+    let netAmount = 0.0;
 
     //Calculate order amount
-     const foods = await Food.find().where('_id').in(cart.map(item => item._id)).exec();
+    const foods = await Food.find()
+      .where("_id")
+      .in(cart.map((item) => item._id))
+      .exec();
 
-     foods.map(food => {
-
-         cart.map(({ _id, unit}) => {
-          if(food._id == _id){
-            // vandorId = food.vandorId;
-            netAmount += (food.price * unit);
-            cartItems.push({ food, unit})
+    foods.map((food) => {
+      cart.map(({ _id, unit }) => {
+        if (food._id == _id) {
+          // vandorId = food.vandorId;
+          netAmount += food.price * unit;
+          cartItems.push({ food, unit });
         }
-    })
-})
+      });
+    });
 
-//create order with item descriptions
-if(cartItems){
-
-  // Create order
-    const currentOrder = await Order.create({
+    //create order with item descriptions
+    if (cartItems) {
+      // Create order
+      const currentOrder = await Order.create({
         orderID: orderId,
         items: cartItems,
         totalAmount: netAmount,
         orderDate: new Date(),
-        paidThrough: 'COD',
-        paymentResponse: '',
-        orderStatus: 'Waiting',
-    })
+        paidThrough: "COD",
+        paymentResponse: "",
+        orderStatus: "Waiting",
+      });
 
-    if(currentOrder){
-     
-      profile.orders.push(currentOrder);
-      await profile.save();
-  
-  
-       return res.status(200).json(currentOrder);
+      if (currentOrder) {
+        profile.orders.push(currentOrder);
+        await profile.save();
+
+        return res.status(200).json(currentOrder);
+      }
     }
-    
-
-}
-
-}
-return res.status(400).json({ msg: 'Error while Creating Order'});
-}
-
+  }
+  return res.status(400).json({ msg: "Error while Creating Order" });
+};
 
 export const GetOrders = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-
   const customer = req.user;
 
-  if(customer){
+  if (customer) {
     const profile = await Customer.findById(customer._id).populate("orders");
 
-    if(profile){
+    if (profile) {
       return res.status(200).json(profile.orders);
     }
   }
-}
-
+};
 
 export const GetOrderById = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-
   const orderId = req.params.id;
 
-  if(orderId){
-
-    const order = (await Order.findById(orderId)).populate('items.food');
+  if (orderId) {
+    const order = (await Order.findById(orderId)).populate("items.food");
 
     res.status(200).json(order);
   }
-}
+};
