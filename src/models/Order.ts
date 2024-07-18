@@ -1,46 +1,54 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
-
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface OrderDoc extends Document {
-
-    orderID: string;
-    vandorId: string;
-    items: [any];
-    totalAmount: number;
-    orderDate: Date;
-    paidThrough: string;
-    paymentResponse: string;
-    orderStatus: string;
+  orderID: string;
+  vandorId: string;
+  items: [any];
+  totalAmount: number;
+  orderDate: Date;
+  paidThrough: string;
+  paymentResponse: string;
+  orderStatus: string;
+  remarks: string;
+  deliveryId: string;
+  appliesOffers: boolean;
+  offerId: string;
+  readyTime: number;
 }
 
-
-const OrderSchema = new Schema({
-    orderID: {type: String, require: true},
-    vandorId: {type: String, require: true},
-        items: [
-        {
-            food: {type: Schema.Types.ObjectId, ref: "food", require: true},
-            unit: { type: Number, require: true}
-        }
+const OrderSchema = new Schema(
+  {
+    orderID: { type: String, require: true },
+    vandorId: { type: String, require: true },
+    items: [
+      {
+        food: { type: Schema.Types.ObjectId, ref: "food", require: true },
+        unit: { type: Number, require: true },
+      },
     ],
-    totalAmount: {type: Number, require: true},
-    orderDate: {type: Date },
-    paidThrough: {type: String},
-    paymentResponse: {type: String},
-    orderStatus: {type: String},   
-},{
+    totalAmount: { type: Number, require: true },
+    orderDate: { type: Date },
+    paidThrough: { type: String },
+    paymentResponse: { type: String },
+    orderStatus: { type: String },
+    remarks: { type: String },
+    deliveryId: { type: String },
+    readyTime: { type: Number },
+    appliedOffers: { type: Boolean },
+    offerId: { type: String },
+  },
+  {
     toJSON: {
-        transform(doc, ret){
-            delete ret.__v;
-            delete ret.createdAt;
-            delete ret.updatedAt;
-
-        }
+      transform(doc, ret) {
+        delete ret.__v;
+        delete ret.createdAt;
+        delete ret.updatedAt;
+      },
     },
-    timestamps: true
-});
+    timestamps: true,
+  }
+);
 
+const Order = mongoose.model<OrderDoc>("order", OrderSchema);
 
-const Order = mongoose.model<OrderDoc>('order', OrderSchema);
-
-export { Order }
+export { Order };

@@ -230,6 +230,7 @@ export const GetCurrentOrders = async (
   return res.json({"message": "Order Not Found"});
 }
 
+// Get sindle order details
 export const GetOrderDetails = async (
   req: Request,
   res: Response,
@@ -239,19 +240,43 @@ export const GetOrderDetails = async (
 
   if(orderId){
 
-    const orders = await Order.findById(orderId).populate('items.food');
+    const order = await Order.findById(orderId).populate('items.food');
 
-    if(orders != null){
-      return res.status(200).json(orders);
+    if(order != null){
+      return res.status(200).json(order);
     }
 }
 
 return res.json({"message": "Order not found"});
 }
 
-
+// Process your order
 export const ProcessOrder = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {}
+) => {
+
+  const orderId = req.params.id;
+
+  const { status, remarks, time } = req.body; // ACCEPT // REJECT // UNDER-PROCESS // READY
+
+  if(orderId){
+
+    const order = (await Order.findById(orderId)).populated('food');
+
+    order.orderStatus = status;
+    order.remarks = remarks;
+
+    if(time){
+      order.readyTime = time
+    }
+
+    const orderResult = await order.save();
+    if(orderResult !== null){
+      return res.status(200).json(orderResult)
+    }
+  }
+
+  return res.json({"message": "unable to process order"});
+}
