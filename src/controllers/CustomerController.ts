@@ -19,6 +19,7 @@ import { Customer } from "../models/Customer";
 import { verify } from "jsonwebtoken";
 import { Order } from "../models/Order";
 import { Food } from "../models/Food";
+import { Offer } from "../models";
 
 // Sign up /  create customer
 export const CustomerSignUp = async (
@@ -457,4 +458,33 @@ export const GetOrderById = async (
     res.status(200).json(order);
   }
 };
+
+export const VerifyOffer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+
+  const offerId = req.params.id;
+  const customer = req.user;
+
+  if(customer){
+
+    const appliedOffer = await Offer.findById(offerId);
+
+    if(appliedOffer){
+
+      if(appliedOffer.promoType === "USER"){
+
+      }else{
+        if(appliedOffer.isActive){
+          return res.status(200).json({ message: "Offer is valid", offer: appliedOffer})
+        }
+        
+      }
+    }
+  }
+
+  return res.status(400).json({ message: "Offer is not valid"})
+}
  
