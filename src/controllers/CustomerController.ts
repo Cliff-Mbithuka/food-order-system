@@ -5,6 +5,7 @@ import {
   UserLoginInputs,
   EditCustomerProfileInputs,
   OrderInputs,
+  CartItem,
 } from "../dto/Customer.dto";
 import { validate, ValidationError } from "class-validator";
 import {
@@ -19,7 +20,7 @@ import { Customer } from "../models/Customer";
 import { verify } from "jsonwebtoken";
 import { Order } from "../models/Order";
 import { Food } from "../models/Food";
-import { Offer } from "../models";
+import { Offer, Transaction } from "../models";
 
 // Sign up /  create customer
 export const CustomerSignUp = async (
@@ -80,13 +81,11 @@ export const CustomerSignUp = async (
     });
 
     // Send the result to client
-    return res
-      .status(201)
-      .json({
-        signature: signature,
-        verified: result.verified,
-        email: result.email,
-      });
+    return res.status(201).json({
+      signature: signature,
+      verified: result.verified,
+      email: result.email,
+    });
   }
 
   return res.status(400).json({ message: "Error with Signup" });
@@ -128,13 +127,11 @@ export const CustomerLogin = async (
       });
 
       // send the result to client
-      return res
-        .status(201)
-        .json({
-          signature: signature,
-          verified: customer.verified,
-          email: customer.email,
-        });
+      return res.status(201).json({
+        signature: signature,
+        verified: customer.verified,
+        email: customer.email,
+      });
     }
   }
 
@@ -262,102 +259,156 @@ export const EditCustomerProfile = async (
 
 /**=========Cart section========= */
 //Add to cart
-export const AddToCart = async (req: Request, res: Response, next: NextFunction) => {
-
+export const AddToCart = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const customer = req.user;
-  
-  if(customer){
 
-      const profile = await Customer.findById(customer._id);
-      let cartItems = Array();
+  if (customer) {
+    const profile = await Customer.findById(customer._id);
+    let cartItems = Array();
 
-      const { _id, unit } = <OrderInputs>req.body;
+    const { _id, unit } = <CartItem>req.body;
 
-      const food = await Food.findById(_id);
+    const food = await Food.findById(_id);
 
-      if(food){
+    if (food) {
+      if (profile != null) {
+        //check for cart items
+        cartItems = profile.cart;
 
-          if(profile != null){
-            //check for cart items
-              cartItems = profile.cart;
+        if (cartItems.length > 0) {
+          // check and update unit
+          let existFoodItems = cartItems.filter(
+            (item) => item.food._id.toString() === _id
+          );
+          if (existFoodItems.length > 0) {
+            const index = cartItems.indexOf(existFoodItems[0]);
 
-              if(cartItems.length > 0){
-                  // check and update unit
-                  let existFoodItems = cartItems.filter((item) => item.food._id.toString() === _id);
-                  if(existFoodItems.length > 0){
-                      
-                      const index = cartItems.indexOf(existFoodItems[0]);
-                      
-                      if(unit > 0){
-                          cartItems[index] = { food, unit };
-                      }else{
-                          cartItems.splice(index, 1);
-                      }
-
-                  }else{
-                      cartItems.push({ food, unit})
-                  }
-
-              }else{
-                  // add new Item to cart
-                  cartItems.push({ food, unit });
-              }
-
-              if(cartItems){
-                  profile.cart = cartItems as any;
-                  const cartResult = await profile.save();
-                  return res.status(200).json(cartResult.cart);
-              }
-
+            if (unit > 0) {
+              cartItems[index] = { food, unit };
+            } else {
+              cartItems.splice(index, 1);
+            }
+          } else {
+            cartItems.push({ food, unit });
           }
-      }
+        } else {
+          // add new Item to cart
+          cartItems.push({ food, unit });
+        }
 
+        if (cartItems) {
+          profile.cart = cartItems as any;
+          const cartResult = await profile.save();
+          return res.status(200).json(cartResult.cart);
+        }
+      }
+    }
   }
 
-  return res.status(404).json({ msg: 'Unable to add to cart!'});
-}
+  return res.status(404).json({ msg: "Unable to add to cart!" });
+};
 
 //Get items from the cart
-export const GetCart = async (req: Request, res: Response, next: NextFunction) => {
-
-    
+export const GetCart = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const customer = req.user;
-  
-  if(customer){
-      const profile = await Customer.findById(customer._id);
 
-      if(profile){
-          return res.status(200).json(profile.cart);
-      }
-  
+  if (customer) {
+    const profile = await Customer.findById(customer._id);
+
+    if (profile) {
+      return res.status(200).json(profile.cart);
+    }
   }
 
-  return res.status(400).json({message: 'Cart is Empty!'})
-
-}
+  return res.status(400).json({ message: "Cart is Empty!" });
+};
 //Delete items in the cart
-export const DeleteCart = async (req: Request, res: Response, next: NextFunction) => {
-
+export const DeleteCart = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const customer = req.user;
 
-  if(customer){
+  if (customer) {
+    const profile = await Customer.findById(customer._id)
+      .populate("cart.food")
+      .exec();
 
-      const profile = await Customer.findById(customer._id).populate('cart.food').exec();
+    if (profile != null) {
+      profile.cart = [] as any;
+      const cartResult = await profile.save();
 
-      if(profile != null){
-          profile.cart = [] as any;
-          const cartResult = await profile.save();
-
-          return res.status(200).json(cartResult);
-      }
-
+      return res.status(200).json(cartResult);
+    }
   }
 
-  return res.status(400).json({message: 'cart is Already Empty!'})
+  return res.status(400).json({ message: "cart is Already Empty!" });
+};
 
-}
+//============= Create payment ========//
+export const CreatePayment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const customer = req.user;
+
+  const { amount, paymentMode, offerId } = req.body;
+
+  let payableAmount = Number(amount);
+
+  if (offerId) {
+    const appliedOffer = await Offer.findById(offerId);
+
+    if (appliedOffer) {
+      if (appliedOffer.isActive) {
+        payableAmount = payableAmount - appliedOffer.offerAmount;
+      }
+    }
+  }
+
+  // Perform Payment gateway charge API call
+
+  // Right after payment gateway success / failure response
+
+  // Create record on Transacion
+  const transaction = await Transaction.create({
+    customer: customer._id,
+    vandorId: "",
+    orderId: "",
+    orderValue: payableAmount,
+    offerUsed: offerId || "NA",
+    status: "OPEN",
+    paymentMode: paymentMode,
+    paymentResponse: "Payment is Cash on Delivery",
+  });
+
+  // return transaction ID
+  return res.status(200).json(transaction);
+};
 
 /**=========Order section========= */
+
+const validateTransaction = async (txnId: string) => {
+  const currentTransaction = await Transaction.findById(txnId);
+  if (currentTransaction) {
+    if (currentTransaction.status.toLocaleLowerCase() !== "failed") {
+      return { status: true, currentTransaction };
+    }
+  }
+
+  return { status: false, currentTransaction}
+};
+
 //Create orders
 export const CreateOrder = async (
   req: Request,
@@ -367,17 +418,24 @@ export const CreateOrder = async (
   // Grab current login customer
   const customer = req.user;
 
+  const { txnId, amount, items } = <OrderInputs>req.body;
+
   if (customer) {
+
+    // Validate transaction
+const { status, currentTransaction } = await validateTransaction(txnId)
+
+ if(!status){
+  return res.status(404).json({message: 'Error with Create Order!'});
+ }
+
+
+
+    const profile = await Customer.findById(customer._id);
     // create an order ID
     const orderId = `${Math.floor(Math.random() * 89999) + 1000}`;
 
-    const profile = await Customer.findById(customer._id);
-
-    // Grab order items from request [{ id: XX ,  unit: XX}]
-    const cart = <[OrderInputs]>req.body;
-
     let cartItems = Array();
-
     let netAmount = 0.0;
 
     let vandorId;
@@ -385,13 +443,13 @@ export const CreateOrder = async (
     //Calculate order amount
     const foods = await Food.find()
       .where("_id")
-      .in(cart.map((item) => item._id))
+      .in(items.map((item) => item._id))
       .exec();
 
     foods.map((food) => {
-      cart.map(({ _id, unit }) => {
+      items.map(({ _id, unit }) => {
         if (food._id == _id) {
-           vandorId = food.vandorId;
+          vandorId = food.vandorId;
           netAmount += food.price * unit;
           cartItems.push({ food, unit });
         }
@@ -406,19 +464,24 @@ export const CreateOrder = async (
         vandorId: vandorId,
         items: cartItems,
         totalAmount: netAmount,
+        paidAmount: amount,
         orderDate: new Date(),
-        paidThrough: "COD",
-        paymentResponse: "",
         orderStatus: "Waiting",
         remarks: "",
-        deliveryId: '',
-        appliedOffer: false,
-        offerId: null,
-        readyTime: 45
+        deliveryId: "",
+        readyTime: 45,
       });
 
       if (currentOrder) {
         profile.cart = [] as any;
+
+        currentTransaction.vandorId = vandorId;
+        currentTransaction.orderId = orderId;
+        currentTransaction.status = 'CONFIRMED';
+
+        await currentTransaction.save()
+
+
         profile.orders.push(currentOrder);
         await profile.save();
 
@@ -464,27 +527,23 @@ export const VerifyOffer = async (
   res: Response,
   next: NextFunction
 ) => {
-
   const offerId = req.params.id;
   const customer = req.user;
 
-  if(customer){
-
+  if (customer) {
     const appliedOffer = await Offer.findById(offerId);
 
-    if(appliedOffer){
-
-      if(appliedOffer.promoType === "USER"){
-
-      }else{
-        if(appliedOffer.isActive){
-          return res.status(200).json({ message: "Offer is valid", offer: appliedOffer})
+    if (appliedOffer) {
+      if (appliedOffer.promoType === "USER") {
+      } else {
+        if (appliedOffer.isActive) {
+          return res
+            .status(200)
+            .json({ message: "Offer is valid", offer: appliedOffer });
         }
-        
       }
     }
   }
 
-  return res.status(400).json({ message: "Offer is not valid"})
-}
- 
+  return res.status(400).json({ message: "Offer is not valid" });
+};

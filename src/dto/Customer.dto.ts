@@ -44,17 +44,17 @@ export interface CustomerPayLoad {
     verified: boolean;
 }
 
-// export class CartItem {
-//     _id: string;
-//     unit: number;
-// }
+export class CartItem {
+    _id: string;
+    unit: number;
+}
  
 
-
 export class OrderInputs {
-   _id: string;
-
- unit: number;
+   
+    txnId: string;
+    amount: string;
+    items: [CartItem]
 }
 
 

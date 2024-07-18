@@ -13,6 +13,7 @@ import {
   DeleteCart,
   GetCart,
   VerifyOffer
+  ,CreatePayment
 } from "../controllers/CustomerController";
 import { Authenticate } from "../middlewares";
 
@@ -48,6 +49,9 @@ router.delete("/cart", DeleteCart);
 router.get('/offer/verify/:id', VerifyOffer)
 
 //payment
+router.post('/create-payment', CreatePayment)
+
+
 // Order
 router.post("/create-order", CreateOrder);
 router.get("/orders", GetOrders);
