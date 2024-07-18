@@ -4,6 +4,8 @@ import { FindVandor } from "./AdminController";
 import { GenerateSignature, ValidatePassword } from "../utility";
 import { CreateFoodInputs } from "../dto/Food.dto";
 import { Food } from "../models/Food";
+import { Order } from "../models/Order";
+import { Vandor } from "../models";
 
 export const VandorLogin = async (
   req: Request,
@@ -207,18 +209,45 @@ export const GetFoods = async (
   return res.json({ message: "foods information Not found" });
 };
 
-
+// Get current orders
 export const GetCurrentOrders = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {}
+) => {
+
+  const user = req.user;
+
+  if(user){
+
+    const orders = await Order.find({VandorId: user._id}).populate('items.food');
+
+    if(orders != null){
+      return res.status(200).json(orders);
+    }
+  }
+
+  return res.json({"message": "Order Not Found"});
+}
 
 export const GetOrderDetails = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {}
+) => {
+  const orderId = req.params.id;
+
+  if(orderId){
+
+    const orders = await Order.findById(orderId).populate('items.food');
+
+    if(orders != null){
+      return res.status(200).json(orders);
+    }
+}
+
+return res.json({"message": "Order not found"});
+}
 
 
 export const ProcessOrder = async (
@@ -226,4 +255,3 @@ export const ProcessOrder = async (
   res: Response,
   next: NextFunction
 ) => {}
-

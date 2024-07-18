@@ -4,6 +4,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 export interface OrderDoc extends Document {
 
     orderID: string;
+    vandorId: string;
     items: [any];
     totalAmount: number;
     orderDate: Date;
@@ -15,6 +16,7 @@ export interface OrderDoc extends Document {
 
 const OrderSchema = new Schema({
     orderID: {type: String, require: true},
+    vandorId: {type: String, require: true},
         items: [
         {
             food: {type: Schema.Types.ObjectId, ref: "food", require: true},
