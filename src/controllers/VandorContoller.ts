@@ -280,3 +280,20 @@ export const ProcessOrder = async (
 
   return res.json({"message": "unable to process order"});
 }
+
+//======== offers=========//
+export const GetOffers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {}
+export const AddOffer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {}
+export const EditOffer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {}

@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction} from 'express';
-import { AddFood, GetFoods, GetVandorProfile, updateVandorProfile, updateVandorService, VandorLogin, UpdateVandorCoverImage, GetCurrentOrders, ProcessOrder, GetOrderDetails } from '../controllers/VandorContoller';
+import { AddFood, GetFoods, GetVandorProfile, updateVandorProfile, updateVandorService, VandorLogin, UpdateVandorCoverImage, GetCurrentOrders, ProcessOrder, GetOrderDetails, GetOffers, AddOffer, EditOffer } from '../controllers/VandorContoller';
 import { Authenticate } from '../middlewares';
 import fs from 'fs';
 import path from 'path';
@@ -46,6 +46,11 @@ router.get("/foods", GetFoods);
 router.get('/orders', GetCurrentOrders);
 router.put('/order/:id/process', ProcessOrder);
 router.get('/order/:id', GetOrderDetails);
+
+//offers
+router.get('/offers', GetOffers);
+router.post('/offer', AddOffer);
+router.put('/offer/:id', EditOffer);
 
 
 router.get('/', (req: Request, res: Response, next: NextFunction) => {
