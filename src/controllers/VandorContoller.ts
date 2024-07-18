@@ -348,7 +348,7 @@ export const AddOffer = async (
 
       console.log(offer);
 
-      res.status(200).json(offer);
+      // res.status(200).json(offer);
     }
   }
 

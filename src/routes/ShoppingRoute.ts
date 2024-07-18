@@ -20,6 +20,10 @@ router.get('/foods-in-30-min/:pincode', GetFoodIn30Min);
 router.get('/search/:pincode', SearchFoods);
 
 
+/**-----------Find Offers-------- */
+router.get("/offers/:pincode")
+
+
 /**-----------Find Resturant By Id-------- */
 router.get('/restaurant/:pincode', ResturantById);
 
