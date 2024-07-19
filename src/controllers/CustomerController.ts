@@ -20,7 +20,7 @@ import { Customer } from "../models/Customer";
 import { verify } from "jsonwebtoken";
 import { Order } from "../models/Order";
 import { Food } from "../models/Food";
-import { Offer, Transaction } from "../models";
+import { Offer, Transaction, Vandor } from "../models";
 
 // Sign up /  create customer
 export const CustomerSignUp = async (
@@ -401,11 +401,18 @@ export const CreatePayment = async (
 const assignOrderForDelivery = async(orderId: string, vandorId: string) => {
 
   // Find the vandor
+  const vandor = await Vandor.findById(vandorId);
 
+  if(vandor){
+
+    const areaCode = vandor.pinCode;
+    const vandorLat = vandor.lat;
+    const vandorLng = vandor.lng;
+ 
   // Find the Available Delivery person
 
   // Check the nearest delivery person and assign the order 
-
+}
   // update deliveryId
 }
 
@@ -500,7 +507,7 @@ const { status, currentTransaction } = await validateTransaction(txnId)
 
         await currentTransaction.save()
 
-        assignOrderForDelivery(currentOrder._id, vandorId);
+        assignOrderForDelivery(String(currentOrder._id), vandorId);
 
 
         profile.orders.push(currentOrder);
