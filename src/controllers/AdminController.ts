@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { CreateVandorInput } from "../dto";
-import { Vandor } from "../models";
+import { Vandor, Transaction } from "../models";
 import { GeneratePassword, GenerateSalt } from "../utility";
 
 
@@ -98,4 +98,36 @@ export const GetVandorById = async (
   }
 
   return res.json({"message": "Vandor data not available"});
+};
+
+
+export const GetTransactions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const transactions = await Transaction.find();
+
+  if(transactions){
+    return res.status(200).json(transactions)
+  }
+
+  return res.json({"message": "Transaction not available"});
+};
+
+
+export const GetTransactionById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const id = req.params.id;
+
+  const transactions = await Transaction.findById(id)
+
+  if(transactions){
+    return res.status(200).json(transactions)
+  }
+
+  return res.json({"message": "Transaction not available"});
 };
