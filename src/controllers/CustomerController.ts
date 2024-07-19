@@ -396,6 +396,25 @@ export const CreatePayment = async (
   return res.status(200).json(transaction);
 };
 
+
+/**=========Delivery Notifications========= */
+const assignOrderForDelivery = async(orderId: string, vandorId: string) => {
+
+  // Find the vandor
+
+  // Find the Available Delivery person
+
+  // Check the nearest delivery person and assign the order 
+
+  // update deliveryId
+}
+
+
+
+
+
+
+
 /**=========Order section========= */
 
 const validateTransaction = async (txnId: string) => {
@@ -480,6 +499,8 @@ const { status, currentTransaction } = await validateTransaction(txnId)
         currentTransaction.status = 'CONFIRMED';
 
         await currentTransaction.save()
+
+        assignOrderForDelivery(currentOrder._id, vandorId);
 
 
         profile.orders.push(currentOrder);
