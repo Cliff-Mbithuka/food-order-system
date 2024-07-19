@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { CreateVandorInput } from "../dto";
-import { Vandor, Transaction } from "../models";
+import { Vandor, Transaction, DeliveryUser } from "../models";
 import { GeneratePassword, GenerateSalt } from "../utility";
 
 
@@ -133,3 +133,33 @@ export const GetTransactionById = async (
 
   return res.json({"message": "Transaction not available"});
 };
+
+export const VerifyDeliveryUser = async (req: Request, res: Response, next: NextFunction) => {
+
+  const { _id, status } = req.body;
+
+  if(_id){
+
+      const profile = await DeliveryUser.findById(_id);
+
+      if(profile){
+          profile.verified = status;
+          const result = await profile.save();
+
+          return res.status(200).json(result);
+      }
+  }
+
+  return res.json({ message: 'Unable to verify Delivery User'});
+}
+
+export const GetDeliveryUsers = async (req: Request, res: Response, next: NextFunction) => {
+
+  const deliveryUsers = await DeliveryUser.find();
+
+  if(deliveryUsers){
+      return res.status(200).json(deliveryUsers);
+  }
+  
+  return res.json({ message: 'Unable to get Delivery Users'});
+}
