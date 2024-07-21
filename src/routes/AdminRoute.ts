@@ -1,8 +1,6 @@
 import express, { Request, Response, NextFunction} from 'express';
 import { CreateVandor, GetTransactions, GetTransactionById, VerifyDeliveryUser, GetDeliveryUsers, GetVandorById, GetVandors, } from '../controllers';
 
-
-
 const router = express.Router();
 
 router.post('/vandor', CreateVandor);

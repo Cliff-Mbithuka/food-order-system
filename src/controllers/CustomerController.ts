@@ -20,7 +20,7 @@ import { Customer } from "../models/Customer";
 import { verify } from "jsonwebtoken";
 import { Order } from "../models/Order";
 import { Food } from "../models/Food";
-import { Offer, Transaction, Vandor } from "../models";
+import { DeliveryUser, Offer, Transaction, Vandor } from "../models";
 
 // Sign up /  create customer
 export const CustomerSignUp = async (
@@ -396,31 +396,36 @@ export const CreatePayment = async (
   return res.status(200).json(transaction);
 };
 
-
 /**=========Delivery Notifications========= */
-const assignOrderForDelivery = async(orderId: string, vandorId: string) => {
-
+const assignOrderForDelivery = async (orderId: string, vandorId: string) => {
   // Find the vandor
   const vandor = await Vandor.findById(vandorId);
 
-  if(vandor){
-
+  if (vandor) {
     const areaCode = vandor.pinCode;
     const vandorLat = vandor.lat;
     const vandorLng = vandor.lng;
- 
-  // Find the Available Delivery person
 
-  // Check the nearest delivery person and assign the order 
-}
-  // update deliveryId
-}
+    // Find the Available Delivery person
+    const deliveryPerson = await DeliveryUser.find({
+      pincode: areaCode,
+      verified: true,
+      isAvailable: true,
+    });
 
+    if (deliveryPerson) {
+      // Check the nearest delivery person and assign the order
 
+      const currentOrder = await Order.findById(orderId);
 
-
-
-
+      if (currentOrder) {
+        // update deliveryId
+        // currentOrder.deliveryId = //
+        await currentOrder.save();
+      }
+    }
+  }
+};
 
 /**=========Order section========= */
 
@@ -432,7 +437,7 @@ const validateTransaction = async (txnId: string) => {
     }
   }
 
-  return { status: false, currentTransaction}
+  return { status: false, currentTransaction };
 };
 
 //Create orders
@@ -447,15 +452,12 @@ export const CreateOrder = async (
   const { txnId, amount, items } = <OrderInputs>req.body;
 
   if (customer) {
-
     // Validate transaction
-const { status, currentTransaction } = await validateTransaction(txnId)
+    const { status, currentTransaction } = await validateTransaction(txnId);
 
- if(!status){
-  return res.status(404).json({message: 'Error with Create Order!'});
- }
-
-
+    if (!status) {
+      return res.status(404).json({ message: "Error with Create Order!" });
+    }
 
     const profile = await Customer.findById(customer._id);
     // create an order ID
@@ -503,12 +505,11 @@ const { status, currentTransaction } = await validateTransaction(txnId)
 
         currentTransaction.vandorId = vandorId;
         currentTransaction.orderId = orderId;
-        currentTransaction.status = 'CONFIRMED';
+        currentTransaction.status = "CONFIRMED";
 
-        await currentTransaction.save()
+        await currentTransaction.save();
 
         assignOrderForDelivery(String(currentOrder._id), vandorId);
-
 
         profile.orders.push(currentOrder);
         await profile.save();
