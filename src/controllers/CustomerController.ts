@@ -420,8 +420,11 @@ const assignOrderForDelivery = async (orderId: string, vandorId: string) => {
 
       if (currentOrder) {
         // update deliveryId
-        // currentOrder.deliveryId = //
-        await currentOrder.save();
+         currentOrder.deliveryId = String(deliveryPerson[0]._id);
+       const response = await currentOrder.save();
+
+        // Notify to vandor for received new order using firebase push notification
+
       }
     }
   }
