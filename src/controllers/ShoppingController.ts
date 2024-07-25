@@ -14,7 +14,7 @@ export const GetFoodAvailability = async (
    console.log(pincode);
 
   const result = await Vandor.find({
-    pincode: pincode,
+    pinCode: pincode,
     serviceAvailable: false,
   })
     .sort([["rating", "descending"]])
