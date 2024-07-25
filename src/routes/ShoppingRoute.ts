@@ -25,7 +25,7 @@ router.get("/offers/:pincode", GetAvailableOffers)
 
 
 /**-----------Find Resturant By Id-------- */
-router.get('/restaurant/:pincode', ResturantById);
+router.get('/restaurant/:id', ResturantById);
 
 
 export {router as ShoppingRoute};
