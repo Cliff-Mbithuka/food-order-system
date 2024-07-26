@@ -45,6 +45,9 @@ export const CustomerSignUp = async (
 
   const { otp, expiry } = GenerateOtp();
 
+  console.log(otp, expiry);
+  
+
   const existingCustomer = await Customer.findOne({ email: email });
 
   if (existingCustomer !== null) {
@@ -430,7 +433,7 @@ const assignOrderForDelivery = async (orderId: string, vandorId: string) => {
   }
 };
 
-/**=========Order section========= */
+/**=========ORDER SECTION========= */
 
 const validateTransaction = async (txnId: string) => {
   const currentTransaction = await Transaction.findById(txnId);
@@ -466,6 +469,8 @@ export const CreateOrder = async (
     // create an order ID
     const orderId = `${Math.floor(Math.random() * 89999) + 1000}`;
 
+    const cart = <[CartItem]>req.body;
+
     let cartItems = Array();
     let netAmount = 0.0;
 
@@ -474,10 +479,10 @@ export const CreateOrder = async (
     //Calculate order amount
     const foods = await Food.find()
       .where("_id")
-      .in(items.map((item) => item._id))
+      .in(cart.map((item) => item._id))
       .exec();
 
-    foods.map((food) => {
+    foods.map(food => {
       items.map(({ _id, unit }) => {
         if (food._id == _id) {
           vandorId = food.vandorId;

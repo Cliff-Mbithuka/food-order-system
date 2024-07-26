@@ -5,3 +5,6 @@
 export const APP_SECRET = "Our_App_Secret";
 
 export const PORT = process.env.PORT || 2485;
+
+export const accountSid = process.env.TWILIO_ACCOUNT_SID;
+export const authToken = process.env.TWILIO_AUTH_TOKEN;
